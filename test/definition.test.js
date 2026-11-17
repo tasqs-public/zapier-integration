@@ -29,7 +29,7 @@ describe('integration definition', () => {
   });
 
   it('offers exactly the planned triggers, actions and search', () => {
-    expect(Object.keys(App.triggers).sort()).toEqual(['list', 'new_task', 'tag', 'task_completed']);
+    expect(Object.keys(App.triggers).sort()).toEqual(['list', 'new_task', 'open_task', 'tag', 'task_completed']);
     expect(Object.keys(App.creates).sort()).toEqual(['complete_task', 'create_task']);
     expect(Object.keys(App.searches)).toEqual(['find_task']);
     expect(App.searchOrCreates.find_task).toMatchObject({ search: 'find_task', create: 'create_task' });

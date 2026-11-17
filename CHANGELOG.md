@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Update action `complete_task`: the Task field is now a dropdown of your open tasks. Mapping a Task ID from an earlier step still works.
+
 ## 1.2.0
 
 - New trigger: Task Completed (`task_completed`). Fires again if a task is reopened and finished a second time.

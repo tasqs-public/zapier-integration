@@ -6,6 +6,7 @@ const newTask = require('./triggers/new_task');
 const taskCompleted = require('./triggers/task_completed');
 const list = require('./triggers/list');
 const tag = require('./triggers/tag');
+const openTask = require('./triggers/open_task');
 const createTask = require('./creates/create_task');
 const completeTask = require('./creates/complete_task');
 const findTask = require('./searches/find_task');
@@ -32,6 +33,7 @@ module.exports = {
     [taskCompleted.key]: taskCompleted,
     [list.key]: list,
     [tag.key]: tag,
+    [openTask.key]: openTask,
   },
   searches: {
     [findTask.key]: findTask,

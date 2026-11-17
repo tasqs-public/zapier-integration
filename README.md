@@ -15,7 +15,7 @@ includes the API.
 | Trigger | New Task | Fires for each newly created task. Optional List and Tag filters. |
 | Trigger | Task Completed | Fires when a task is marked as done, and again if it is reopened and finished a second time. Optional List and Tag filters. |
 | Action | Create Task | Title, description, list, due date, priority, tags, repeat. |
-| Action | Complete Task | Marks a task as done by its Task ID. Safe to run twice. |
+| Action | Complete Task | Marks a task as done: pick it from a dropdown of open tasks, or map a Task ID. Safe to run twice. |
 | Search | Find Task | By title text; an exact title match comes first. Also offered as Find or Create Task. |
 
 List and Tag dropdowns store the numeric id and show the name, so a Zap keeps
@@ -75,7 +75,7 @@ authentication.js   OAuth 2 against tasqs.com
 middleware.js       Bearer header on API calls; API errors shown in words
 lib/constants.js    every address the integration uses
 lib/task.js         the task shape, its sample and field labels
-triggers/           new_task, task_completed, plus the hidden list and tag dropdown feeds
+triggers/           new_task, task_completed, plus the hidden list, tag and open-task dropdown feeds
 creates/            create_task, complete_task
 searches/           find_task
 test/               jest tests (mocked HTTP)

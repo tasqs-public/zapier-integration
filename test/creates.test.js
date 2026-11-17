@@ -128,4 +128,24 @@ describe('Complete Task', () => {
     const [field] = App.creates.complete_task.operation.inputFields;
     expect(field).toMatchObject({ key: 'task_id', required: true, search: 'find_task.id' });
   });
+
+  it('offers a dropdown of open tasks, a page at a time', async () => {
+    const [field] = App.creates.complete_task.operation.inputFields;
+    expect(field.dynamic).toBe('open_task.id.title');
+    expect(App.triggers.open_task.display.hidden).toBe(true);
+    expect(App.triggers.open_task.operation.canPaginate).toBe(true);
+
+    const queries = [];
+    nock('https://tasqs.com').get('/v1/tasks').query((q) => { queries.push(q); return true; }).times(2)
+      .reply(200, { data: [apiTask({ title: 'Learn to sail' })], pagination: {} });
+
+    const first = await appTester(App.triggers.open_task.operation.perform, { authData, meta: {} });
+    await appTester(App.triggers.open_task.operation.perform, { authData, meta: { page: 1 } });
+
+    expect(queries).toEqual([
+      { status: 'open', per_page: '50', page: '1' },
+      { status: 'open', per_page: '50', page: '2' },
+    ]);
+    expect(first).toEqual([{ id: '05eca9cb53fe23166b6293771bfeb6ab', title: 'Learn to sail' }]);
+  });
 });
