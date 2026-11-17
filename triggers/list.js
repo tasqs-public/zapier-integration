@@ -2,8 +2,8 @@
 
 const { API } = require('../lib/constants');
 
-// Hidden: feeds the "List" dropdowns. Tasqs addresses lists by NAME on the
-// API, so the dropdown's value is the name.
+// Hidden: feeds the "List" dropdowns. The dropdown stores the list's numeric
+// id and shows its name, so a Zap survives the list being renamed.
 const perform = async (z) => {
   const response = await z.request({ url: `${API}/lists` });
   return response.data.data.map((list) => ({ id: list.id, name: list.name }));

@@ -20,14 +20,16 @@ describe('New Task trigger', () => {
     expect(results[0].id).toBe('05eca9cb53fe23166b6293771bfeb6ab');
   });
 
-  it('passes the list and tag filters through by name', async () => {
+  it('passes the list and tag filters through by id, so a rename cannot break the Zap', async () => {
     let query;
     nock('https://tasqs.com').get('/v1/tasks').query((q) => { query = q; return true; })
       .reply(200, { data: [], pagination: {} });
     const results = await appTester(App.triggers.new_task.operation.perform, {
-      authData, inputData: { list: 'Household', tag: 'errands' },
+      authData, inputData: { list_id: 21, tag_id: 57 },
     });
-    expect(query).toEqual({ per_page: '50', list: 'Household', tag: 'errands' });
+    expect(query).toEqual({ per_page: '50', list_id: '21', tag_id: '57' });
+    expect(query).not.toHaveProperty('list');
+    expect(query).not.toHaveProperty('tag');
     expect(results).toEqual([]);
   });
 
@@ -35,7 +37,7 @@ describe('New Task trigger', () => {
     let query;
     nock('https://tasqs.com').get('/v1/tasks').query((q) => { query = q; return true; })
       .reply(200, { data: [], pagination: {} });
-    await appTester(App.triggers.new_task.operation.perform, { authData, inputData: { list: '', tag: null } });
+    await appTester(App.triggers.new_task.operation.perform, { authData, inputData: { list_id: '', tag_id: null } });
     expect(query).toEqual({ per_page: '50' });
     expect(App.flags).toEqual({ cleanInputData: false });
   });
@@ -49,9 +51,40 @@ describe('New Task trigger', () => {
   });
 });
 
+describe('Task Completed trigger', () => {
+  afterEach(() => nock.cleanAll());
+
+  it('asks for the most recently finished tasks, not the most recently created', async () => {
+    let query;
+    nock('https://tasqs.com', { reqheaders: { authorization: 'Bearer tqo_access' } })
+      .get('/v1/tasks').query((q) => { query = q; return true; })
+      .reply(200, { data: [apiTask({ status: 'completed', completed_at: '2026-11-17 09:00:00' })], pagination: {} });
+
+    const [task] = await appTester(App.triggers.task_completed.operation.perform, { authData, inputData: { list_id: 21 } });
+
+    expect(query).toEqual({ status: 'completed', sort: 'completed', per_page: '50', list_id: '21' });
+    expect(task.status).toBe('completed');
+    expect(task.completed_at).toBe('2026-11-17T09:00:00Z');
+    expect(task).not.toHaveProperty('notes');
+  });
+
+  it('dedupes on the task id together with its completion time, so a re-completed task fires again', () => {
+    const primary = (key) => App.triggers[key].operation.outputFields.filter((f) => f.primary).map((f) => f.key).sort();
+    expect(primary('task_completed')).toEqual(['completed_at', 'id']);
+    expect(primary('new_task')).toEqual(['id']);
+  });
+
+  it('shows a completed task as its sample', () => {
+    const sample = App.triggers.task_completed.operation.sample;
+    expect(sample.status).toBe('completed');
+    expect(sample.completed_at).not.toBeNull();
+  });
+});
+
 describe('task shape', () => {
   it('flattens the list and tags and links back to the task', () => {
     const t = shapeTask(apiTask());
+    expect(t.list_id).toBe(1);
     expect(t.list_name).toBe('Inbox');
     expect(t.tags).toEqual(['boat', 'summer']);
     expect(t.tags_text).toBe('boat, summer');
@@ -79,6 +112,7 @@ describe('task shape', () => {
     expect(t.due_date).toBeNull();
     expect(t.repeats).toBe('weekly');
     expect(t.has_attachment).toBe(true);
+    expect(t.list_id).toBeNull();
     expect(t.list_name).toBeNull();
     expect(t.tags_text).toBe('');
   });
@@ -110,10 +144,14 @@ describe('dropdown triggers', () => {
     expect(App.triggers.tag.display.hidden).toBe(true);
   });
 
-  it('wires both dropdowns into the New Task filters', () => {
-    const fields = Object.fromEntries(App.triggers.new_task.operation.inputFields.map((f) => [f.key, f]));
-    expect(fields.list.dynamic).toBe('list.name.name');
-    expect(fields.tag.dynamic).toBe('tag.name.name');
-    expect(fields.list.required).toBe(false);
+  it('wires both dropdowns into every trigger, storing the id and showing the name', () => {
+    for (const key of ['new_task', 'task_completed']) {
+      const fields = Object.fromEntries(App.triggers[key].operation.inputFields.map((f) => [f.key, f]));
+      expect(fields.list_id.dynamic).toBe('list.id.name');
+      expect(fields.tag_id.dynamic).toBe('tag.id.name');
+      expect(fields.list_id.required).toBe(false);
+      expect(fields).not.toHaveProperty('list');
+      expect(fields).not.toHaveProperty('tag');
+    }
   });
 });

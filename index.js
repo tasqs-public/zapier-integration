@@ -3,8 +3,16 @@
 const authentication = require('./authentication');
 const { befores, afters } = require('./middleware');
 const newTask = require('./triggers/new_task');
+const taskCompleted = require('./triggers/task_completed');
 const list = require('./triggers/list');
 const tag = require('./triggers/tag');
+const createTask = require('./creates/create_task');
+const completeTask = require('./creates/complete_task');
+const findTask = require('./searches/find_task');
+
+// creates/create_task.js also exports two helpers for its tests; the platform
+// schema allows no extra keys, so hand it the definition only.
+const { _toDay, _toTags, ...createTaskDefinition } = createTask;
 
 module.exports = {
   version: require('./package.json').version,
@@ -21,10 +29,28 @@ module.exports = {
 
   triggers: {
     [newTask.key]: newTask,
+    [taskCompleted.key]: taskCompleted,
     [list.key]: list,
     [tag.key]: tag,
   },
-  searches: {},
-  creates: {},
+  searches: {
+    [findTask.key]: findTask,
+  },
+  creates: {
+    [createTaskDefinition.key]: createTaskDefinition,
+    [completeTask.key]: completeTask,
+  },
+  // "Find Task" with a "create it if it doesn't exist" checkbox.
+  searchOrCreates: {
+    [findTask.key]: {
+      key: findTask.key,
+      display: {
+        label: 'Find or Create Task',
+        description: 'Finds a task by its title, or creates it if there is no match.',
+      },
+      search: findTask.key,
+      create: createTaskDefinition.key,
+    },
+  },
   resources: {},
 };

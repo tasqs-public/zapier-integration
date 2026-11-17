@@ -2,7 +2,8 @@
 
 const { API } = require('../lib/constants');
 
-// Hidden: feeds the "Tag" dropdowns. Tags are addressed by name, like lists.
+// Hidden: feeds the "Tag" filter dropdowns. Stores the tag's numeric id and
+// shows its name, like lists.
 const perform = async (z) => {
   const response = await z.request({ url: `${API}/tags` });
   return response.data.data.map((tag) => ({ id: tag.id, name: tag.name }));

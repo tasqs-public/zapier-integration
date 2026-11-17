@@ -10,8 +10,8 @@ describe('error handling', () => {
 
   it("shows the API's own message, not a bare status", async () => {
     nock('https://tasqs.com').get('/v1/tasks').query(true)
-      .reply(404, { error: { code: 'list_not_found', message: 'No list named "Wrk". Your lists: Work, Home.' } });
-    await expect(run()).rejects.toThrow('No list named \\"Wrk\\". Your lists: Work, Home.');
+      .reply(404, { error: { code: 'list_not_found', message: 'No list with that id. Your lists: Work (4), Home (9).' } });
+    await expect(run()).rejects.toThrow('No list with that id. Your lists: Work (4), Home (9).');
   });
 
   it('explains the plan gate in words', async () => {

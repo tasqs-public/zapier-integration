@@ -19,11 +19,29 @@ describe('integration definition', () => {
 
   it('calls only tasqs.com', () => {
     const files = ['index.js', 'authentication.js', 'middleware.js', 'lib/constants.js', 'lib/task.js',
-      ...fs.readdirSync(path.join(__dirname, '..', 'triggers')).map((f) => `triggers/${f}`)];
+      ...['triggers', 'creates', 'searches'].flatMap((dir) =>
+        fs.readdirSync(path.join(__dirname, '..', dir)).map((f) => `${dir}/${f}`))];
     for (const file of files) {
       const src = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       const hosts = [...src.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase());
       for (const host of hosts) expect(`${file}: ${host}`).toBe(`${file}: tasqs.com`);
+    }
+  });
+
+  it('offers exactly the planned triggers, actions and search', () => {
+    expect(Object.keys(App.triggers).sort()).toEqual(['list', 'new_task', 'tag', 'task_completed']);
+    expect(Object.keys(App.creates).sort()).toEqual(['complete_task', 'create_task']);
+    expect(Object.keys(App.searches)).toEqual(['find_task']);
+    expect(App.searchOrCreates.find_task).toMatchObject({ search: 'find_task', create: 'create_task' });
+  });
+
+  it('gives every visible step a label, a description and a sample', () => {
+    const steps = [...Object.values(App.triggers), ...Object.values(App.creates), ...Object.values(App.searches)];
+    for (const step of steps) {
+      expect(step.display.label).toBeTruthy();
+      expect(step.display.description).toMatch(/\.$/);
+      expect(step.operation.sample).toBeTruthy();
+      if (!step.display.hidden) expect(step.operation.sample).not.toHaveProperty('notes');
     }
   });
 
