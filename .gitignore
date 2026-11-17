@@ -1,0 +1,8 @@
+node_modules/
+build/
+dist/
+*.log
+*.tgz
+# Local credentials for `zapier test` / `zapier invoke`. Never commit.
+.env
+.environment

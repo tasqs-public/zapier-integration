@@ -1,0 +1,23 @@
+{
+  "name": "tasqs-zapier-integration",
+  "version": "1.1.0",
+  "description": "Tasqs for Zapier: turn events in other apps into tasks, and finished tasks into events.",
+  "license": "MIT",
+  "private": true,
+  "main": "index.js",
+  "homepage": "https://tasqs.com",
+  "repository": "github:tasqs-public/zapier-integration",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "jest --testTimeout 10000"
+  },
+  "dependencies": {
+    "zapier-platform-core": "19.3.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.0",
+    "nock": "^13.5.0"
+  }
+}
