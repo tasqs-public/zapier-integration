@@ -31,6 +31,15 @@ describe('New Task trigger', () => {
     expect(results).toEqual([]);
   });
 
+  it('treats an empty filter as no filter (input is not cleaned by the platform)', async () => {
+    let query;
+    nock('https://tasqs.com').get('/v1/tasks').query((q) => { query = q; return true; })
+      .reply(200, { data: [], pagination: {} });
+    await appTester(App.triggers.new_task.operation.perform, { authData, inputData: { list: '', tag: null } });
+    expect(query).toEqual({ per_page: '50' });
+    expect(App.flags).toEqual({ cleanInputData: false });
+  });
+
   it('never hands private notes to a Zap', async () => {
     nock('https://tasqs.com').get('/v1/tasks').query(true)
       .reply(200, { data: [apiTask()], pagination: {} });
