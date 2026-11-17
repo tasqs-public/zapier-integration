@@ -44,10 +44,14 @@ The integration is linked to Zapier app `249909` by `.zapierapprc`.
 ```
 npm install -g zapier-platform-cli
 zapier-platform login
-zapier-platform env:set 1.1.0 CLIENT_ID=<client id> CLIENT_SECRET=<client secret>
 zapier-platform validate
 zapier-platform push
+zapier-platform env:set 1.1.0 CLIENT_ID=<client id> CLIENT_SECRET=<client secret>
 ```
+
+- Push first. `env:set` attaches the values to a version, and a version does
+  not exist on Zapier until it has been pushed ("Version 1.1.0 doesn't exist"
+  means the order was reversed). Each new version needs its own `env:set`.
 
 - The client id and secret are the ones registered for Zapier on the Tasqs
   server. They are set per version with `env:set` and are **never** written to
